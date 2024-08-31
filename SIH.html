@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC Ticket Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            background-image: url('Train.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        header {
+            background-color: #003366;
+            color: #ffffff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        #content {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border-radius: 10px;
+        }
+
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .booking-form input,
+        .booking-form select,
+        .booking-form button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+
+        .booking-form button {
+            background-color: #FF8C00;
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+
+        .checkbox-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .kiosk {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .kiosk button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .voice-assistant-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>INDIAN RAILWAYS</h1>
+        <p>Safety | Security | Punctuality</p>
+    </header>
+
+    <div id="content">
+        <div class="booking-form">
+            <h2>BOOK TICKET</h2>
+            <input type="text" placeholder="From" id="from">
+            <input type="text" placeholder="To" id="to">
+            <input type="text" placeholder="DD/MM/YYYY" id="date">
+            <select id="class">
+                <option value="general">General</option>
+                <option value="sleeper">Sleeper</option>
+                <option value="ac">AC</option>
+            </select>
+            <div class="checkbox-options">
+                <label><input type="checkbox" id="pwd"> Person With Disability Concession</label>
+                <label><input type="checkbox" id="flexible-date"> Flexible With Date</label>
+                <label><input type="checkbox" id="available-berth"> Train with Available Berth</label>
+                <label><input type="checkbox" id="railway-pass"> Railway Pass Concession</label>
+            </div>
+            <button onclick="searchTicket()">Search</button>
+            <button onclick="easyBooking()">Easy Booking on AskDISHA</button>
+            <button class="voice-assistant-btn" onclick="activateVoiceAssistant()">Activate Voice Assistant</button>
+        </div>
+
+        <div class="kiosk">
+            <h3>Get your Tatkal ticket on DISHA</h3>
+            <button>Book Ticket</button>
+            <button>Support</button>
+        </div>
+    </div>
+
+    <script>
+        function searchTicket() {
+            alert('Search button clicked');
+        }
+
+        function easyBooking() {
+            alert('Easy Booking on AskDISHA clicked');
+        }
+
+        function activateVoiceAssistant() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.lang = 'en-IN';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    speak("Voice assistant activated. Please say your starting point.");
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript.toLowerCase();
+                    handleVoiceCommand(transcript);
+                };
+
+                recognition.onerror = () => {
+                    speak("Sorry, I didn't catch that. Please try again.");
+                };
+
+                recognition.start();
+            } else {
+                alert("Sorry, your browser doesn't support the Web Speech API.");
+            }
+        }
+
+        function handleVoiceCommand(command) {
+            if (command.includes("from")) {
+                speak("Please say the starting point.");
+                document.getElementById("from").value = command.replace("from", "").trim();
+            } else if (command.includes("to")) {
+                speak("Please say your destination.");
+                document.getElementById("to").value = command.replace("to", "").trim();
+            } else if (command.includes("date")) {
+                speak("Please say the travel date.");
+                document.getElementById("date").value = command.replace("date", "").trim();
+            } else if (command.includes("search")) {
+                searchTicket();
+            } else {
+                speak("I'm sorry, I didn't understand the command.");
+            }
+        }
+
+        function speak(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'en-IN';
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+</body>
+</html>
