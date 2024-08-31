@@ -25,7 +25,7 @@
 
         #content {
             max-width: 600px;
-            margin: 20px auto;
+            margin: 20px 5px 20px 20px;
             background-color: #ffffff;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -97,6 +97,11 @@
             font-size: 16px;
             margin-top: 20px;
         }
+
+        .input-disabled {
+            pointer-events: none;
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -109,8 +114,8 @@
     <div id="content">
         <div class="booking-form">
             <h2>BOOK TICKET</h2>
-            <input type="text" placeholder="From" id="from">
-            <input type="text" placeholder="To" id="to">
+            <input type="text" placeholder="From" id="from" class="manual-input" onclick="listenForInput('from')">
+            <input type="text" placeholder="To" id="to" class="manual-input" onclick="listenForInput('to')">
             <input type="text" placeholder="DD/MM/YYYY" id="date">
             <select id="class">
                 <option value="general">General</option>
@@ -136,8 +141,17 @@
     </div>
 
     <script>
+        let isVoiceAssistantActive = false;
+
         function searchTicket() {
-            alert('Search button clicked');
+            const from = document.getElementById("from").value.trim().toLowerCase();
+            const to = document.getElementById("to").value.trim().toLowerCase();
+
+            if (from && to) {
+                window.location.href = `trains.html?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+            } else {
+                alert('Please fill in both "From" and "To" fields.');
+            }
         }
 
         function easyBooking() {
@@ -145,19 +159,37 @@
         }
 
         function activateVoiceAssistant() {
-            if ('webkitSpeechRecognition' in window) {
+            isVoiceAssistantActive = !isVoiceAssistantActive;
+
+            if (isVoiceAssistantActive) {
+                document.getElementById('from').classList.add('input-disabled');
+                document.getElementById('to').classList.add('input-disabled');
+                speak("Voice assistant activated. Please say your starting point.");
+                listenForVoiceInput('from');
+            } else {
+                document.getElementById('from').classList.remove('input-disabled');
+                document.getElementById('to').classList.remove('input-disabled');
+                speak("Voice assistant deactivated. You can now enter details manually.");
+            }
+        }
+
+        function listenForVoiceInput(field) {
+            if (isVoiceAssistantActive && 'webkitSpeechRecognition' in window) {
                 const recognition = new webkitSpeechRecognition();
                 recognition.lang = 'en-IN';
                 recognition.interimResults = false;
                 recognition.maxAlternatives = 1;
 
-                recognition.onstart = () => {
-                    speak("Voice assistant activated. Please say your starting point.");
-                };
-
                 recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript.toLowerCase();
-                    handleVoiceCommand(transcript);
+                    const transcript = event.results[0][0].transcript.trim().toLowerCase();
+                    if (field === 'from') {
+                        document.getElementById("from").value = transcript;
+                        speak("Please say your destination.");
+                        listenForVoiceInput('to');
+                    } else if (field === 'to') {
+                        document.getElementById("to").value = transcript;
+                        checkAndNavigate();
+                    }
                 };
 
                 recognition.onerror = () => {
@@ -165,25 +197,15 @@
                 };
 
                 recognition.start();
-            } else {
-                alert("Sorry, your browser doesn't support the Web Speech API.");
             }
         }
 
-        function handleVoiceCommand(command) {
-            if (command.includes("from")) {
-                speak("Please say the starting point.");
-                document.getElementById("from").value = command.replace("from", "").trim();
-            } else if (command.includes("to")) {
-                speak("Please say your destination.");
-                document.getElementById("to").value = command.replace("to", "").trim();
-            } else if (command.includes("date")) {
-                speak("Please say the travel date.");
-                document.getElementById("date").value = command.replace("date", "").trim();
-            } else if (command.includes("search")) {
-                searchTicket();
-            } else {
-                speak("I'm sorry, I didn't understand the command.");
+        function checkAndNavigate() {
+            const from = document.getElementById("from").value.trim().toLowerCase();
+            const to = document.getElementById("to").value.trim().toLowerCase();
+
+            if (from && to) {
+                window.location.href = `trains.html?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
             }
         }
 
