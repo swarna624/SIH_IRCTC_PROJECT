@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Train Status Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div id="info">
+    <h3>Train Status: <span id="trainName"></span> (<span id="trainNumber"></span>)</h3>
+    <p id="statusDetails">Loading status...</p>
+</div>
+
+<script>
+    // Get train number from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainNumber = urlParams.get('trainNumber');
+
+    // Fetch train status data (mock data for demonstration)
+    const trainData = {
+        '12727': { name: 'Godavari Express', status: 'On Time', nextStop: 'Kazipet Junction', arrivalTime: '15:30' },
+        '12724': { name: 'Telangana Express', status: 'Delayed', nextStop: 'Warangal', arrivalTime: '16:45' },
+        '12760': { name: 'Charminar Express', status: 'Cancelled', nextStop: '-', arrivalTime: '-' },
+        '12713': { name: 'Satavahana Express', status: 'On Time', nextStop: 'Jangaon', arrivalTime: '14:20' },
+        '17064': { name: 'Secunderabad - Manmad Express', status: 'On Time', nextStop: 'Warangal', arrivalTime: '18:10' },
+    };
+
+    // Update train details
+    const trainInfo = trainData[trainNumber] || { name: 'Unknown', status: 'Unavailable', nextStop: '-', arrivalTime: '-' };
+    document.getElementById('trainName').textContent = trainInfo.name;
+    document.getElementById('trainNumber').textContent = trainNumber;
+    document.getElementById('statusDetails').innerHTML = `Status: ${trainInfo.status}<br>Next Stop: ${trainInfo.nextStop}<br>Arrival Time: ${trainInfo.arrivalTime}`;
+
+    // Three.js Setup for 3D train visualization
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    scene.add(directionalLight);
+
+    // Create a railway track (a long box)
+    const trackGeometry = new THREE.BoxGeometry(10, 0.1, 0.5);
+    const trackMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+    const track = new THREE.Mesh(trackGeometry, trackMaterial);
+    scene.add(track);
+
+    // Create multiple sleepers on the railway track
+    for (let i = -5; i <= 5; i++) {
+        const sleeperGeometry = new THREE.BoxGeometry(0.2, 0.05, 0.5);
+        const sleeperMaterial = new THREE.MeshPhongMaterial({ color: 0x654321 });
+        const sleeper = new THREE.Mesh(sleeperGeometry, sleeperMaterial);
+        sleeper.position.x = i;
+        scene.add(sleeper);
+    }
+
+    // Create a 3D train model (a rectangular box)
+    const trainGeometry = new THREE.BoxGeometry(1, 0.5, 0.5);
+    const trainMaterial = new THREE.MeshPhongMaterial({ color: 0x0077ff });
+    const train = new THREE.Mesh(trainGeometry, trainMaterial);
+    train.position.set(-5, 0.3, 0);
+    scene.add(train);
+
+    // Position the camera
+    camera.position.z = 5;
+    camera.position.y = 1;
+
+    // Animation variables
+    let trainSpeed = 0.02;
+    let trainDirection = 1;
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+
+        // Move the train along the track
+        train.position.x += trainSpeed * trainDirection;
+
+        // Reverse direction when reaching the end of the track
+        if (train.position.x > 5 || train.position.x < -5) {
+            trainDirection *= -1;
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Adjust scene on window resize
+    window.addEventListener('resize', function () {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    });
+</script>
+
+</body>
+</html>
